@@ -1,0 +1,11 @@
+media
+venv
+templates
+.env
+.idea
+*.py[cod]
+__pycache__
+migrations
+db.sqlite3
+capstone_project/settings/local.py
+

@@ -1,0 +1,9 @@
+Django==2.1.3
+djangorestframework==3.9.0
+Pillow
+pytesseract
+numpy
+opencv-python
+django-rest-swagger
+coreapi
+pyyaml
