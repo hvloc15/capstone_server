@@ -9,4 +9,5 @@ class Image(models.Model):
 class Book(models.Model):
     name = models.CharField(max_length=100)
     author = models.CharField(max_length=100)
+    num = models.IntegerField(default=0)
 

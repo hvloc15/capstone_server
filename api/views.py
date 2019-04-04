@@ -4,7 +4,7 @@ from api.serializers import ImageSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from api.renderer import ApiJSONRenderer
-from algorithms.ocr_algorithms import run_ocr_tesseract, run_ocr_kraken, run_ocr_ocropy
+from algorithms.ocr_algorithms import run_ocr_tesseract, run_ocr_kraken, run_ocr_ocropy, run_ocr_crnn
 from algorithms.utils import (read_opencv_image,
 							  preprocess_image,
 							  extract_line,
@@ -12,6 +12,7 @@ from algorithms.utils import (read_opencv_image,
 							  modify_image_and_detect_bounding_boxes)
 import uuid
 import threading,time
+
 
 class OCR(APIView):
 	parser_classes = (MultiPartParser, FormParser)
@@ -48,12 +49,15 @@ class OCR(APIView):
 
 	def tesseract(self, image):
 		image = preprocess_image(image)
-
 		return run_ocr_tesseract(image)
 
 	def kraken(self, image):
 		image = preprocess_image(image)
 		return run_ocr_kraken(image)
+
+	def crnn(self, image):
+
+		return run_ocr_crnn(image)
 
 	def ocropy(self, image):
 		return run_ocr_ocropy(image)

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"/>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th, td {
+            text-align: center;
+            word-wrap: break-word;
+        }
+
+        td, img {
+            height: 100px;
+        }
+
+        .gray_row {
+            background-color: #d3d3d3;
+        }
+
+        .sky_row {
+            background-color: #87ceeb;
+        }
+
+        img {
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+<h2>REPORT</h2>
+
+<table style="width:100%">
+    <col width="5%"/>
+    <col width="35%"/>
+    <col width="20%"/>
+    <col width="20%"/>
+    <col width="20%"/>
+    <tr class="sky_row">
+        <th>No</th>
+        <th>Image</th>
+        <th>Text</th>
+        <th>Vietrain</th>
+        <th>Vie</th>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Accuracy: 0.310621 <br/>
+            Avg Performance: 0.57913<br/>
+            Avg WER: 0.401194<br/>
+            Avg CER: 0.178517
+        </td>
+        <td>Accuracy: 0.268537<br/>
+            Avg Performance: 0.443678<br/>
+            Avg WER: 0.467613<br/>
+            Avg CER: 0.181874
+        </td>
+    </tr>
+
+    {% for row in list_rows %}
+        <tr class="{% if forloop.counter0|divisibleby:2 !=0 %}">
+            <td>{{ forloop.counter }}</td>
+            <td><img src="{{ image_folder }}/{{ row.image_name }}"/> </td>
+            <td>{{ row.Actual }}</td>
+            <td>{{ row.viettrain }}<br/>
+                (WER: {{ row.viettrain.WER }})<br/>
+                (CER: {{ row.viettrain.CER }})
+            </td>
+            <td>{{ row.viettrain }}<br/>
+                (WER: {{ row.viettrain.WER }})<br/>
+                (CER: {{ row.viettrain.CER }})
+            </td>
+        </tr>
+    {% endfor %}
+
+ </table>
+</body>
+</html>

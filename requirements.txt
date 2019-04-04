@@ -4,12 +4,10 @@ Click==7.0
 coreapi==2.3.3
 coremltools==2.1.0
 coreschema==0.0.4
-dj-database-url==0.5.0
 Django==2.1.3
 django-rest-swagger==2.2.0
 djangorestframework==3.9.0
 future==0.17.1
-gunicorn==19.9.0
 idna==2.8
 imutils==0.5.2
 inflection==0.3.1
