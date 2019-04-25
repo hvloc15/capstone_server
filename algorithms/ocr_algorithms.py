@@ -1,5 +1,4 @@
 import pytesseract
-import cv2
 import torch
 from torchvision.transforms import Compose
 from algorithms.data_transform import Resize

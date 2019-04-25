@@ -1,0 +1,126 @@
+---
+
+- name: Deploy capstone_server
+
+  hosts: web
+
+  roles:
+    - name: python3
+      python3_pyenv: 3.6.7
+  
+  vars:
+    user: "{{ ansible_ssh_user }}"
+    proj_name: capstone_server
+    venv_home: "{{ ansible_env.HOME }}"
+    venv_path: "{{ venv_home }}/{{ proj_name }}"
+    proj_dirname: capstone
+    proj_path: "{{ venv_path }}/{{ proj_dirname }}"
+    reqs_path: requirements.txt
+    manage: "{{ python }} {{ proj_path }}/manage.py"
+    repo_url: git@github.com:hvloc15/capstone_server.git
+    uwsgi_port: 8000
+    locale: en_US.UTF-8
+    tls_enabled: True
+    python: "{{ venv_path }}/bin/python"
+    conf_path: /etc/nginx/conf.d/cert
+    key_file: nginx-selfsigned.key
+    cert_file: nginx-selfsigned.crt
+    uwsgi_app_ini: myuwsgi.ini
+    domains:
+      - localhost
+
+  environment:
+    TESSDATA_PREFIX: '{{ proj_path }}/model'
+
+  tasks:
+
+    - name: install apt packages
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+      sudo: True
+      with_items:
+        - git
+        - libjpeg-dev
+        - libpq-dev
+        - supervisor
+        - nginx
+        - python-dev
+        - python-pip
+        - python-psycopg2
+        - python-setuptools
+        - python-virtualenv
+	- tesseract-ocr
+
+    - name: check out the repository on the host
+      git: repo={{ repo_url }} dest={{ proj_path }} accept_hostkey=yes
+
+    - name: install required python packages
+      pip: name={{ item }} virtualenv={{ venv_path }} virtualenv_python: python3.6
+      with_items:
+        - uwsgi
+        - south
+        - psycopg2
+        - django-compressor
+
+    - name: install requirements.txt
+      pip: requirements={{ proj_path }}/{{ reqs_path }} virtualenv={{ venv_path }} virtualenv_python: python3.6
+
+    - name: sync the database, apply migrations, collect static content
+      django_manage:
+        command: "{{ item }}"
+        app_path: "{{ proj_path }}"
+        virtualenv: "{{ venv_path }}"
+        virtualenv_python: python3.6
+      with_items:
+        - makemigrations
+        - migrate
+        - collectstatic
+
+    - name: set the uwsgi config file
+      template: src=templates/myuwsgi.ini dest={{ proj_path }}/{{ uwsgi_app_ini }}
+    
+    - name: set the supervisor config file
+      template: src=templates/supervisor.conf dest=/etc/supervisor/conf.d/{{ proj_name }}.conf
+      sudo: True
+      notify: restart supervisor
+      
+    - name: set the nginx config file
+      template: src=templates/nginx.conf dest=/etc/nginx/sites-available/nginx.conf
+      notify: restart nginx
+      sudo: True
+      
+    - name: copy TLS key
+      copy: src=files/nginx-selfsigned.key dest={{ conf_path }}/{{ key_file }} owner=root mode=0600
+      notify: restart nginx
+    
+    - name: copy TLS certificate
+      copy: src=files/nginx-selfsigned.crt dest={{ conf_path }}/{{ cert_file }}
+      notify: restart nginx
+
+    - name: enable the nginx config file
+      file:
+        src: /etc/nginx/sites-available/nginx.conf
+        dest: /etc/nginx/sites-enabled/nginx.conf
+        state: link
+      notify: restart nginx
+      sudo: True
+
+    - name: remove the default nginx config file
+      file: path=/etc/nginx/sites-enabled/default state=absent
+      notify: restart nginx
+      sudo: True
+
+    - name: ensure config path exists
+      file: path={{ conf_path }} state=directory
+      sudo: True
+      when: tls_enabled
+
+
+  handlers:
+
+    - name: restart supervisor
+      supervisorctl: name=capstone_uwsgi state=restarted
+      sudo: True
+
+    - name: restart nginx
+      service: name=nginx state=restarted
+      sudo: True

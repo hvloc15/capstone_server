@@ -1,8 +1,5 @@
-from typing import List
-
-import torch
 import torch.nn as nn
-from torch.autograd import Variable
+
 
 import torchvision.models as models
 import numpy as np
@@ -15,9 +12,6 @@ class CRNN(nn.Module):
                  input_size,
                  abc,
                  backend,
-                 # lstm_hidden_size=config.lstm_hidden_size,
-                 # lstm_num_layers=config.lstm_num_layers,
-                 # lstm_dropout=config.dropout,
                  seq_proj=[0, 0],
                  ):
         super(CRNN, self).__init__()
@@ -43,11 +37,6 @@ class CRNN(nn.Module):
         self.lstm_num_layers = config.lstm_num_layers
         self.lstm_hidden_size = config.lstm_hidden_size
         self.lstm_dropout = config.lstm_dropout
-
-        # self.fully_conv = seq_proj[0] == 0
-        # if not self.fully_conv:
-        #     self.proj = nn.Conv2d(seq_proj[0], seq_proj[1], kernel_size=1)
-        # self.rnn = nn.LSTM(self.get_block_size(self.cnn),
 
         self.lstm = nn.LSTM(self.lstm_input_size,
                             self.lstm_hidden_size, self.lstm_num_layers,
@@ -108,13 +97,6 @@ class CRNN(nn.Module):
                 seq = seq, softmax
         return seq
 
-    # def init_hidden(self, batch_size, gpu=False):
-    #     h0 = Variable(torch.zeros(self.lstm_num_layers * 2,
-    #                               batch_size,
-    #                               self.lstm_hidden_size))
-    #     h0 = h0.cuda()
-    #     return h0
-
     def features_to_sequence(self, features):
         # (b, c, h, w)
         features = features.permute(3, 0, 2, 1)  # (w, b, h, c)
@@ -124,9 +106,6 @@ class CRNN(nn.Module):
         features = self.cnn2lstm(features)  # (w, b, rnn_input)
         assert features.size()[0] == 120 and features.size()[2] == config.lstm_input_size
         return features
-
-    # def get_block_size(self, layer):
-    #     return layer[-1][-1].bn2.weight.size()[0]
 
     def pred_to_string(self, pred):
         # pred.shape = (w, dim)
